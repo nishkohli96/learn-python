@@ -1,0 +1,19 @@
+[project]
+name = "@nish1896/learn-python"
+version = "1.0.0"
+description = "Learn Python from scratch with examples and exercises."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Nishant", email = "nishantkohli96@gmail.com" }
+]
+keywords = [
+	"python",
+	"python3",
+	"python-programming",
+	"pip3",
+	"programming",
+	"learn-python",
+	"python-basics"
+]
