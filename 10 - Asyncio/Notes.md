@@ -119,3 +119,185 @@ await                   await
 Promise.all()           asyncio.gather()
 setTimeout / timers     asyncio.sleep()
 Event loop              Event loop
+
+## Task
+
+```py
+async def fetch_user():
+    await asyncio.sleep(2)
+    return "User"
+
+coro = fetch_user()
+```
+
+When you call `fetch_user()` you get a coroutine object. At this point, the coroutine hasn't necessarily been scheduled to run.
+
+**A Task is a coroutine that has been scheduled to run by the event loop.**
+
+```py
+async def fetch_user()
+        ↓
+   fetch_user()
+        ↓
+    Coroutine
+        ↓
+asyncio.create_task()
+        ↓
+      Task
+        ↓
+ Event loop schedules it
+```
+
+### Why Do We Need `create_task()`?
+
+Think of `create_task()` as "Start This in the Background. I'll decide when to wait for its result."
+
+It is conceptually somewhat similar to starting an async operation in Node.js and keeping its promise/future around.
+
+Consider:
+
+```py
+async def main():
+    user = await fetch_user()
+    orders = await fetch_orders()
+```
+
+This is sequential:
+
+```
+fetch_user
+    ↓
+wait
+    ↓
+finish
+    ↓
+fetch_orders
+    ↓
+wait
+    ↓
+finish
+```
+
+But we can schedule both immediately:
+
+```py
+async def main():
+    user_task = asyncio.create_task(fetch_user())
+    orders_task = asyncio.create_task(fetch_orders())
+
+    user = await user_task
+    orders = await orders_task
+```
+
+Now:
+
+```
+create user task ────────┐
+                         │
+create orders task ──────┤
+                         ↓
+                  Event Loop
+                  runs both
+```
+
+They can make progress concurrently.
+
+### `create_task()` vs `gather()`
+
+`gather()`:
+
+```py
+results = await asyncio.gather(
+    fetch_user(),
+    fetch_orders()
+)
+```
+
+is convenient when you simply want:
+
+**"Run these things concurrently and give me their results."**
+
+`create_task()`
+
+```py
+user_task = asyncio.create_task(fetch_user())
+orders_task = asyncio.create_task(fetch_orders())
+```
+
+is useful when you want to create/schedule the tasks now and await them later.
+
+For example:
+
+```py
+async def main():
+
+    user_task = asyncio.create_task(fetch_user())
+    orders_task = asyncio.create_task(fetch_orders())
+
+    print("Tasks are running...")
+
+    user = await user_task
+    orders = await orders_task
+```
+
+## Mental Mode
+
+```
+                 EVENT LOOP
+                     │
+             "Who can run?"
+                     │
+        ┌────────────┼────────────┐
+        ↓            ↓            ↓
+      Task A       Task B       Task C
+        │            │            │
+      await        await        await
+        │            │            │
+        ↓            ↓            ↓
+     waiting      waiting      ready
+                                  │
+                                  ↓
+                              RUN TASK
+                                  │
+                                await
+                                  │
+                                  ↓
+                         back to event loop
+```
+
+## asyncio.to_thread()
+
+`to_thread()` is for synchronous blocking functions.
+
+This is particularly useful when you have:
+- legacy synchronous code
+- blocking SDKs
+- synchronous file operations
+- CPU-light but blocking functions
+- third-party libraries without async support
+
+For example:
+
+```py
+result = await asyncio.to_thread(sync_function)
+```
+
+Think: "Run this blocking synchronous function in a separate thread and give me the result asynchronously."
+
+But don't use `to_thread()` for everything!
+
+```py
+def fetch_from_legacy_api(user_id, timeout):
+    time.sleep(3)
+    return {
+        "user_id": user_id,
+        "timeout": timeout,
+        "status": "success"
+    }
+
+result = await asyncio.to_thread(
+    fetch_from_legacy_api,
+    123,
+    10
+)
+```
