@@ -111,14 +111,14 @@ user, orders, recommendations = await asyncio.gather(
 
 ### Analogy with Javascript
 
-JavaScript              Python
-────────────────────────────────────
-Promise                 Coroutine
-async function          async def
-await                   await
-Promise.all()           asyncio.gather()
-setTimeout / timers     asyncio.sleep()
-Event loop              Event loop
+| JavaScript | Python |
+| - | - |
+| Promise | Coroutine |
+| async function | async def |
+| await | await |
+| Promise.all() | asyncio.gather() |
+| setTimeout / timers | asyncio.sleep() |
+| Event loop | Event loop |
 
 ## Task
 

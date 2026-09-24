@@ -65,6 +65,7 @@ X = TypeVar("T")
 ```
 
 `X` — this is the actual Python variable name you'll reference in your code (`list[X]`, `Generic[X]`, etc.). This is what matters for your code to run.
+
 `"T"` — this is just a string label, passed as an argument to `TypeVar()`. It's used internally for error messages, `repr()`, and debugging — Python doesn't derive the variable name from this string; it's purely descriptive metadata.
 
 Prefer using the same name to avoid confusion.
